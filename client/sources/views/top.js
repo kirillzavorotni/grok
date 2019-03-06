@@ -11,7 +11,7 @@ export default class TopView extends JetView {
 				{ value: "Film set 1", id: "filmsSet1" },
 				{ value: "Film set 2", id: "filmsSet2" },
 				{ value: "Set 1 Details", id: "set1Details" },
-				{ value: "Tab 4", id: "tab-4" },
+				{ value: "Film Settings", id: "filmSettings" },
 			],
 			on: {
 				onAfterSelect: function (id) {
@@ -20,6 +20,9 @@ export default class TopView extends JetView {
 					header.refresh();
 				}
 			},
+			click: () => {
+				this.app.callEvent("editCancel");
+			}
 		};
 
 		const ui = {

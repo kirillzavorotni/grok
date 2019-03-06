@@ -34,7 +34,13 @@ export default class TabView3 extends JetView {
 						{
 							cols: [
 								{ view: "spacer" },
-								{ view: "template", template: "", localId: "filmTemplate", width: 280, css: "actor-template-body" },
+								{
+									view: "template",
+									template: "",
+									localId: "filmTemplate",
+									width: 280,
+									css: "actor-template-body"
+								},
 								{ view: "spacer" },
 							]
 						},
@@ -66,7 +72,9 @@ export default class TabView3 extends JetView {
 
 	init() {
 		this.$$("filmList").sync(filmset1);
-		this.$$("elementTable").sync(actors);
+		this.on(this.app, "editCancel", () => {
+			this.$$("elementTable").editCancel();
+		});
 	}
 
 	urlChange() {
@@ -77,17 +85,17 @@ export default class TabView3 extends JetView {
 			const id = this.getParam("id");
 			if (id && filmset1.exists(id)) {
 				this.$$("filmList").select(id);
-				this.defineTemplate("");
-				this.$$("elementTable").filter(function (obj) {
+				actors.filter(function (obj) {
 					return obj.filmID == id;
 				});
+				this.$$("elementTable").parse(actors);
 			} else {
-				this.$$("elementTable").filter(function () {
+				actors.filter(function () {
 					return false;
 				});
 				this.$$("filmList").unselectAll();
-				this.defineTemplate("");
 			}
+			this.defineTemplate("<div class='actor-info-wrap'></div>");
 		});
 	}
 

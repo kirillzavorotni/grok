@@ -81,8 +81,6 @@ export default class ChangeDataFormView extends JetView {
 									if (form.validate()) {
 										const values = form.getValues();
 										filmset1.updateItem(values.id, values);
-										// filmset1.remove(values.id);
-										
 										this.hideWindow();
 									}
 								}
