@@ -14,3 +14,8 @@ Route::put('/secondFilms/{id}', 'GridSecondController@updateData');
 
 Route::get('/actors', 'GridActorController@getData');
 Route::put('/actors/{id}', 'GridActorController@updateData');
+
+Route::get('/category', 'LoadCategoryController@getData');
+
+Route::post('/upload', 'UploadController@upload');
+Route::get('get/{id}', 'UploadController@getData');

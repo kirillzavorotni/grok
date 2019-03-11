@@ -1,5 +1,27 @@
 import { JetView } from "webix-jet";
 import { filmset1 } from "models/filmset1";
+import { categories } from "models/categories";
+
+const formSize = {
+	width: 400,
+	height: 300,
+	margin: 5,
+};
+
+const validRules = {
+	title: webix.rules.isNotEmpty,
+	year: value => {
+		return value >= 1920 && value <= new Date().getFullYear();
+	},
+	rating: value => {
+		return value > 0 && value <= 10;
+	},
+	rank: webix.rules.isNumber,
+	votes: value => {
+		return value >= 0 && value <= 1000000;
+	},
+	categoriesID: webix.rules.isNotEmpty,
+};
 
 export default class ChangeDataFormView extends JetView {
 	config() {
@@ -13,9 +35,9 @@ export default class ChangeDataFormView extends JetView {
 					{
 						view: "form",
 						localId: "itemForm",
-						margin: 5,
-						width: 400,
-						height: 270,
+						margin: formSize.margin,
+						width: formSize.width,
+						height: formSize.height,
 						elements: [
 							{
 								view: "text",
@@ -47,20 +69,9 @@ export default class ChangeDataFormView extends JetView {
 								name: "rank",
 								invalidMessage: "must be number"
 							},
+							{ view: "richselect", label: "Category", name: "categoriesID", options: categories },
 						],
-						rules: {
-							title: webix.rules.isNotEmpty,
-							year: value => {
-								return value >= 1920 && value <= new Date().getFullYear();
-							},
-							rating: value => {
-								return value > 0 && value <= 10;
-							},
-							rank: webix.rules.isNumber,
-							votes: value => {
-								return value >= 0 && value <= 1000000;
-							},
-						},
+						rules: validRules,
 					},
 					{
 						cols: [
@@ -77,12 +88,7 @@ export default class ChangeDataFormView extends JetView {
 								label: "Edit",
 								type: "form",
 								click: () => {
-									const form = this.$$("itemForm");
-									if (form.validate()) {
-										const values = form.getValues();
-										filmset1.updateItem(values.id, values);
-										this.hideWindow();
-									}
+									this.editItem();
 								}
 							},
 						],
@@ -92,6 +98,7 @@ export default class ChangeDataFormView extends JetView {
 		};
 	}
 
+	/********************************************************************/
 	showWindow(item) {
 		this.getRoot().show();
 		this.$$("itemForm").setValues(item);
@@ -100,6 +107,7 @@ export default class ChangeDataFormView extends JetView {
 	hideWindow(mode) {
 		const window = this.getRoot();
 		const form = this.$$("itemForm");
+
 		// for stop loop
 		if (mode) {
 			window.hide();
@@ -107,7 +115,19 @@ export default class ChangeDataFormView extends JetView {
 			this.app.callEvent("clearSelect");
 			window.hide();
 		}
+
 		form.clearValidation();
 		form.clear();
+	}
+
+	editItem() {
+		const form = this.$$("itemForm");
+
+		if (form.validate()) {
+			const values = form.getValues();
+			filmset1.updateItem(values.id, values);
+			this.hideWindow();
+		}
+		
 	}
 }

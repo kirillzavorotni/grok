@@ -58,3 +58,15 @@
 .actor-template-body {
 	border: none;
 }
+
+.template-film-img-wrap {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center; 
+}
+
+.film-img {
+	display: block;
+	height: 240px;
+}

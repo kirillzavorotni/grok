@@ -22,6 +22,7 @@ class GridFirstController extends Controller
         $votes = $request->input('votes');
         $rating = $request->input('rating');
         $rank = $request->input('rank');
+        $categoryID = $request->input('categoriesID');
 
         DB::table('firstFilms')->where('id', $id)->update(array(
             'title' => $title,
@@ -29,6 +30,7 @@ class GridFirstController extends Controller
             'votes' => $votes,
             'rating' => $rating,
             'rank' => $rank,
+            'categoriesID' => $categoryID,
         ));
     }
 }

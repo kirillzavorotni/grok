@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
                 'votes' => $faker->numberBetween($min = 1000, $max = 9000),
                 'rating' => $faker->randomFloat($nbMaxDecimals = NULL, $min = 0, $max = 10),
                 'rank' => $faker->numberBetween($min = 1, $max = 9000),
+                'categoriesID' => $faker->numberBetween($min = 1, $max = 7),
+
             ]);
         }
 
@@ -37,6 +39,13 @@ class DatabaseSeeder extends Seeder
                 'birthday' => $faker->year($max = 'now'),
                 'country' => $faker->countryCode,
                 'filmID' => $faker->numberBetween($min = 1, $max = 10),
+            ]);
+        }
+
+        $categories = ['Comedy', 'Horror', 'Romance', 'Action', 'Crime', 'Thriller', 'Drama'];
+        foreach($categories as $category) {
+            DB::table('film_categories')->insert([
+                'value' => $category
             ]);
         }
     }

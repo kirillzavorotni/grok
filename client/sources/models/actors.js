@@ -1,4 +1,6 @@
+import { serverUrl } from "models/serverUrl";
+
 export const actors = new webix.DataCollection({
-	url: "http://localhost/backend/public/actors",
-	save: "rest->http://localhost/backend/public/actors",
+	url: `${serverUrl}/actors`,
+	save: `rest->${serverUrl}/actors`,
 });

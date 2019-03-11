@@ -2,12 +2,24 @@ import { JetView } from "webix-jet";
 import { filmset1 } from "models/filmset1";
 import { actors } from "models/actors";
 
+const list_size = {
+	width: 270,
+};
+
+const filmTemplate_size = {
+	width: 280,
+};
+
+const elementTable_column_size = {
+	col_1: 150,
+};
+
 export default class TabView3 extends JetView {
 	config() {
 		const list = {
 			view: "list",
 			localId: "filmList",
-			width: 270,
+			width: list_size.width,
 			select: true,
 			scroll: true,
 			template: "#rank#. #title#",
@@ -22,15 +34,17 @@ export default class TabView3 extends JetView {
 			cols: [
 				{
 					rows: [
-						{
-							template: "Select film", type: "header", css: "filmList-header",
-						},
+						{ template: "Select film", type: "header", css: "filmList-header" },
 						list
 					],
 				},
 				{
 					rows: [
-						{ template: "Click below table elem to show actor info", type: "header", css: "actor-template-head" },
+						{
+							template: "Click below table elem to show actor info",
+							type: "header",
+							css: "actor-template-head"
+						},
 						{
 							cols: [
 								{ view: "spacer" },
@@ -38,7 +52,7 @@ export default class TabView3 extends JetView {
 									view: "template",
 									template: "",
 									localId: "filmTemplate",
-									width: 280,
+									width: filmTemplate_size.width,
 									css: "actor-template-body"
 								},
 								{ view: "spacer" },
@@ -51,7 +65,7 @@ export default class TabView3 extends JetView {
 							editable: true,
 							select: "row",
 							columns: [
-								{ id: "firstName", header: "Name", width: 150, editor: "text" },
+								{ id: "firstName", header: "Name", width: elementTable_column_size.width, editor: "text" },
 								{ id: "lastName", header: "Surname", fillspace: true, editor: "text" },
 							],
 							on: {
@@ -70,6 +84,7 @@ export default class TabView3 extends JetView {
 		};
 	}
 
+	/********************************************************************/
 	init() {
 		this.$$("filmList").sync(filmset1);
 		this.on(this.app, "editCancel", () => {
@@ -83,6 +98,7 @@ export default class TabView3 extends JetView {
 			actors.waitData,
 		]).then(() => {
 			const id = this.getParam("id");
+
 			if (id && filmset1.exists(id)) {
 				this.$$("filmList").select(id);
 				actors.filter(function (obj) {
@@ -95,6 +111,7 @@ export default class TabView3 extends JetView {
 				});
 				this.$$("filmList").unselectAll();
 			}
+
 			this.defineTemplate("<div class='actor-info-wrap'></div>");
 		});
 	}

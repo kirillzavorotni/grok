@@ -16,6 +16,7 @@ class CreateFilmsTable extends Migration
             $table->integer('votes');
             $table->float('rating');
             $table->integer('rank');
+            $table->integer('categoriesID');
             $table->timestamps();
         });
     }

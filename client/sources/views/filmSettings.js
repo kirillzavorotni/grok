@@ -1,5 +1,37 @@
 import { JetView } from "webix-jet";
 import { filmset1 } from "models/filmset1";
+import { categories } from "models/categories";
+import { serverUrl } from "models/serverUrl";
+
+const filmList_size = {
+	width: 270,
+};
+
+const film_template_size = {
+	width: 200,
+	height: 250,
+};
+
+const filmsTable_size = {
+	col_1: 70,
+	col_3: 100,
+	col_4: 100,
+	col_5: 100,
+};
+
+const form_rules = {
+	title: webix.rules.isNotEmpty,
+	year: value => {
+		return value >= 1920 && value <= new Date().getFullYear();
+	},
+	rating: value => {
+		return value > 0 && value <= 10;
+	},
+	rank: webix.rules.isNumber,
+	votes: value => {
+		return value >= 0 && value <= 1000000;
+	},
+};
 
 export default class TabView4 extends JetView {
 	config() {
@@ -36,9 +68,11 @@ export default class TabView4 extends JetView {
 		};
 	}
 
+	/********************************************************************/
 	urlChange() {
 		const segVal = this.$$("segBtn").getValue();
 		const mode = this.getParam("mode");
+
 		if (mode && mode === "listTableView") {
 			this.$$("segBtn").setValue("listTableView");
 		} else if (mode && mode === "gridTableView") {
@@ -46,6 +80,7 @@ export default class TabView4 extends JetView {
 		} else {
 			this.setParam("mode", segVal, true);
 		}
+
 	}
 }
 
@@ -54,7 +89,7 @@ class ListTableView extends JetView {
 		const list = {
 			view: "list",
 			localId: "filmList",
-			width: 270,
+			width: filmList_size.width,
 			select: true,
 			scroll: true,
 			template: "#rank#. #title#",
@@ -70,66 +105,86 @@ class ListTableView extends JetView {
 			localId: "filmForm",
 			autoheight: false,
 			elements: [
-				{ view: "text", label: "Title", name: "title", invalidMessage: "must be filled in" },
 				{
 					cols: [
 						{
 							rows: [
+								{ view: "text", label: "Title", name: "title", invalidMessage: "must be filled in" },
 								{ view: "text", label: "Votes", name: "votes", invalidMessage: "must be less than 1000000" },
 								{ view: "text", label: "Rating", name: "rating", invalidMessage: "cannot be empty or 0, max 10" },
 							],
 						},
 						{
 							rows: [
-								{ view: "text", label: "Year", name: "year", invalidMessage: "between 1920 and current" },
+								{ view: "richselect", label: "Category", name: "categoriesID", options: categories },
+								{ view: "text", label: "Year", name: "year" },
 								{ view: "text", label: "Rank", name: "rank", invalidMessage: "must be number" },
 							],
 						},
 					],
 				},
 				{
-					cols: [
+					rows: [
+						{
+							cols: [
+								{ view: "spacer" },
+								{
+									view: "template",
+									localId: "film-template",
+									template: "<div class='template-film-img-wrap'><img src='#src#' class='film-img'></div>",
+									width: film_template_size.width,
+									height: film_template_size.height,
+								},
+								{ view: "spacer" },
+							],
+						},
+						{
+							view: "uploader",
+							localId: "uploader",
+							value: "Edit poster",
+							link: "conditionLoader",
+							name: "files",
+							autosend: false,
+							multiple: false,
+							accept: "image/jpeg, image/png",
+							upload: `${serverUrl}/upload`,
+							formData: () => {
+								return {
+									film_id: this._filmID,
+								};
+							},
+							on: {
+								onUploadComplete: (response) => {
+									this.$$("film-template").setValues({ src: `${serverUrl}/get/${response.media_id}` });
+									filmset1.getItem(response.film_id).media_id = response.media_id;
+								},
+								onBeforeFileAdd: () => {
+									this.upload_file = true;
+								}
+							}
+						},
 						{
 							view: "button",
 							type: "form",
 							label: "Save",
 							click: () => {
-								const form = this.$$("filmForm");
-								if (this.$$("filmList").getSelectedId()) {
-									if (form.validate()) {
-										const values = form.getValues();
-										filmset1.updateItem(values.id, values);
-										form.clearValidation();
-										webix.message("Film is updated");
-									}
-								} else {
-									webix.message("You need to select film");
-								}
+								this.saveForm();
 							}
 						},
-						// {
-						// 	view: "button",
-						// 	label: "Cancel",
-						// },
+						{
+							view: "list",
+							id: "conditionLoader",
+							type: "uploader",
+							autoheight: true,
+							borderless: true
+						},
 					],
 				}
 			],
 			elementsConfig: {
 				labelAlign: "right",
 			},
-			rules: {
-				title: webix.rules.isNotEmpty,
-				year: value => {
-					return value >= 1920 && value <= new Date().getFullYear();
-				},
-				rating: value => {
-					return value > 0 && value <= 10;
-				},
-				rank: webix.rules.isNumber,
-				votes: value => {
-					return value >= 0 && value <= 1000000;
-				},
-			},
+			rules: form_rules,
 		};
 
 		return {
@@ -140,6 +195,7 @@ class ListTableView extends JetView {
 		};
 	}
 
+	/********************************************************************/
 	init() {
 		this.$$("filmList").sync(filmset1);
 	}
@@ -149,16 +205,56 @@ class ListTableView extends JetView {
 		const form = this.$$("filmForm");
 		filmset1.waitData.then(() => {
 			const id = this.getParam("id");
+
 			if (id && filmset1.exists(id)) {
 				list.select(id);
 				const film = filmset1.getItem(id);
 				form.setValues(film);
+
+				if (film.media_id) {
+					film.src = `${serverUrl}/get/${film.media_id}`;
+				} else {
+					film.src = "https://www.easymovieposter.com/Design/_images/emp_vignettes/192x296_EMPT_Blank_K.jpg";
+				}
+
+				this._filmID = film.id;
+				this.$$("film-template").parse(film);
+				this.upload_file = false;
 			} else {
+				this.$$("film-template").setValues({ src: "https://www.easymovieposter.com/Design/_images/emp_vignettes/192x296_EMPT_Blank_K.jpg" });
 				list.unselect();
 				form.clear();
 				form.clearValidation();
 			}
+
 		});
+	}
+
+	addFile() {
+
+		if (this.upload_file) {
+			this.$$("uploader").send();
+		}
+
+	}
+
+	saveForm() {
+		const form = this.$$("filmForm");
+
+		if (this.$$("filmList").getSelectedId()) {
+
+			if (form.validate()) {
+				const values = form.getValues();
+				filmset1.updateItem(values.id, values);
+				this.addFile();
+				form.clearValidation();
+				webix.message("Film is updated");
+			}
+
+		} else {
+			webix.message("You need to select film");
+		}
+
 	}
 }
 
@@ -170,11 +266,11 @@ class GridTableView extends JetView {
 			select: "row",
 			editable: true,
 			columns: [
-				{ id: "rank", header: ["Rank", { content: "textFilter" }], width: 70, sort: "int", editor: "text" },
+				{ id: "rank", header: ["Rank", { content: "textFilter" }], width: filmsTable_size.col_1, sort: "int", editor: "text" },
 				{ id: "title", header: ["Film Title", { content: "textFilter" }], fillspace: true, sort: "text", editor: "text" },
-				{ id: "votes", header: ["Votes", { content: "textFilter" }], width: 100, sort: "int", editor: "text" },
-				{ id: "year", header: ["Year", { content: "richSelectFilter" }], width: 100, sort: "int", editor: "text" },
-				{ id: "rating", header: ["Rating", { content: "textFilter" }], width: 100, sort: "int", editor: "text" },
+				{ id: "votes", header: ["Votes", { content: "textFilter" }], width: filmsTable_size.col_2, sort: "int", editor: "text" },
+				{ id: "year", header: ["Year", { content: "richSelectFilter" }], width: filmsTable_size.col_3, sort: "int", editor: "text" },
+				{ id: "rating", header: ["Rating", { content: "textFilter" }], width: filmsTable_size.col_4, sort: "int", editor: "text" },
 			],
 			on: {
 				onAfterSelect: (item) => {
@@ -184,6 +280,7 @@ class GridTableView extends JetView {
 		};
 	}
 
+	/********************************************************************/
 	init() {
 		this.$$("filmsTable").sync(filmset1);
 	}
@@ -192,11 +289,13 @@ class GridTableView extends JetView {
 		const table = this.$$("filmsTable");
 		filmset1.waitData.then(() => {
 			const id = this.getParam("id");
+
 			if (id && filmset1.exists(id)) {
 				table.select(id);
 			} else {
 				table.unselect();
 			}
+
 		});
 	}
 }
