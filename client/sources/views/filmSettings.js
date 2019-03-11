@@ -19,6 +19,10 @@ const filmsTable_size = {
 	col_5: 100,
 };
 
+const template_row = {
+	height: 250,
+};
+
 const form_rules = {
 	title: webix.rules.isNotEmpty,
 	year: value => {
@@ -124,8 +128,26 @@ class ListTableView extends JetView {
 					],
 				},
 				{
+					cols: [
+						{ view: "spacer" },
+						{
+							view: "checkbox",
+							labelAlign: "left",
+							value: 1,
+							labelRight: "Show poster",
+							on: {
+								onChange: (newv) => {
+									this.showHideElem(newv);
+								}
+							}
+						},
+						{ view: "spacer" },
+					],
+				},
+				{
 					rows: [
 						{
+							localId: "templateRow",
 							cols: [
 								{ view: "spacer" },
 								{
@@ -137,6 +159,7 @@ class ListTableView extends JetView {
 								},
 								{ view: "spacer" },
 							],
+							height: template_row.height,
 						},
 						{
 							view: "uploader",
@@ -255,6 +278,20 @@ class ListTableView extends JetView {
 			webix.message("You need to select film");
 		}
 
+	}
+
+	showHideElem(newv) {
+
+		if (newv == 0) {
+			this.$$("film-template").hide();
+			this.$$("templateRow").define("height", 1);
+			this.$$("templateRow").resize();
+		} else {
+			this.$$("film-template").show();
+			this.$$("templateRow").define("height", template_row.height);
+			this.$$("templateRow").resize();
+		}
+		
 	}
 }
 
